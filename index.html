@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarjeta de Navidad 3D</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #050510;
+            /* Dark night blue */
+            font-family: 'Mountains of Christmas', cursive;
+            color: white;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 4rem;
+            margin: 0;
+            padding: 20px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .share-container {
+            margin-top: 20px;
+            pointer-events: auto;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-family: 'Mountains of Christmas', cursive;
+            font-size: 1.5rem;
+            padding: 10px 30px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+        }
+
+        /* Modal Styles */
+        #modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        #modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #modal-content {
+            background: rgba(20, 20, 40, 0.9);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #modal-overlay.active #modal-content {
+            transform: scale(1);
+        }
+
+        #modal-content h2 {
+            margin-top: 0;
+            color: #ffd700;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: white;
+            font-family: sans-serif;
+            /* Readable for input */
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .close-btn {
+            font-size: 1.2rem;
+            padding: 8px 20px;
+            background: rgba(255, 50, 50, 0.2);
+            border-color: rgba(255, 50, 50, 0.4);
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 50, 50, 0.4);
+        }
+
+        .copy-btn {
+            font-size: 1.2rem;
+            padding: 8px 20px;
+            background: rgba(50, 255, 50, 0.2);
+            border-color: rgba(50, 255, 50, 0.4);
+        }
+
+        .copy-btn:hover {
+            background: rgba(50, 255, 50, 0.4);
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            button {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div id="ui-layer">
+        <h1 id="greeting">¡Feliz Navidad!</h1>
+        <div class="share-container">
+            <button id="share-btn">Enviar a un amigo</button>
+        </div>
+    </div>
+
+    <!-- Modal Form -->
+    <div id="modal-overlay">
+        <div id="modal-content">
+            <h2>Crear Tarjeta</h2>
+            <p>Escribe el nombre de tu amigo:</p>
+            <input type="text" id="friend-name-input" placeholder="Nombre..." autocomplete="off">
+            <div id="result-area" style="display:none;">
+                <p>¡Link generado!</p>
+                <input type="text" id="share-link-input" readonly>
+            </div>
+            <div class="modal-buttons">
+                <button id="action-btn" class="copy-btn">Generar Link</button>
+                <button id="close-btn" class="close-btn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // --- 1. Scene Setup ---
+        const scene = new THREE.Scene();
+        // Add some fog for depth
+        scene.fog = new THREE.FogExp2(0x050510, 0.002);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 5;
+        camera.position.y = 1; // Slightly elevated
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Performance optimization
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // --- 2. Lighting ---
+        const ambientLight = new THREE.AmbientLight(0x001133, 0.8); // Deep blue night
+        scene.add(ambientLight);
+
+        const pointLight = new THREE.PointLight(0xffddaa, 1, 10); // Warm light for tree
+        pointLight.position.set(2, 2, 2);
+        scene.add(pointLight);
+
+        // Optional back rim light
+        const rimLight = new THREE.DirectionalLight(0xccccff, 0.5);
+        rimLight.position.set(-5, 5, -5);
+        scene.add(rimLight);
+
+        // --- 3. Tree Construction ---
+        const treeGroup = new THREE.Group();
+        scene.add(treeGroup);
+
+        // Materials
+        const leaveMaterial = new THREE.MeshStandardMaterial({
+            color: 0x0f5f0f,
+            roughness: 0.8,
+            flatShading: true
+        });
+        const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x5a3a1a });
+
+        // Trunk
+        const trunkGeo = new THREE.CylinderGeometry(0.5, 0.6, 1.5, 8);
+        const trunk = new THREE.Mesh(trunkGeo, trunkMaterial);
+        trunk.position.y = -2;
+        treeGroup.add(trunk);
+
+        // Leaves (3 Cones)
+        const levels = 3;
+        for (let i = 0; i < levels; i++) {
+            const size = 1 + (levels - i) * 0.6;
+            const height = 1.5;
+            const y = -1.5 + i * 1.0;
+
+            const coneGeo = new THREE.ConeGeometry(size, height, 8);
+            const cone = new THREE.Mesh(coneGeo, leaveMaterial);
+            cone.position.y = y;
+            treeGroup.add(cone);
+
+            // Add ornaments to this layer
+            addOrnaments(y - height / 2, size, 6);
+        }
+
+        // Star on top
+        const starGeo = new THREE.IcosahedronGeometry(0.4, 0);
+        const starMat = new THREE.MeshStandardMaterial({
+            color: 0xffd700,
+            emissive: 0xffaa00,
+            emissiveIntensity: 0.5,
+            roughness: 0
+        });
+        const star = new THREE.Mesh(starGeo, starMat);
+        star.position.y = 1.6;
+        treeGroup.add(star);
+
+        // Ornaments Helper
+        function addOrnaments(baseY, radius, count) {
+            const sphereGeo = new THREE.SphereGeometry(0.15, 16, 16);
+            const colors = [0xff0000, 0xffd700, 0xc0c0c0, 0x0000ff]; // Red, Gold, Silver, Blue
+
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * Math.PI * 2 + Math.random();
+                // Position slightly inside the radius so it looks embedded
+                const r = radius * 0.8;
+                const x = Math.cos(angle) * r;
+                const z = Math.sin(angle) * r;
+                // Random height variation
+                const y = baseY + Math.random() * 0.5;
+
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.1, metalness: 0.5 });
+                const orb = new THREE.Mesh(sphereGeo, mat);
+                orb.position.set(x, y, z);
+                treeGroup.add(orb);
+            }
+        }
+
+        // --- 4. Snow System ---
+        const snowCount = 1000;
+        const snowGeo = new THREE.BufferGeometry();
+        const snowPos = new Float32Array(snowCount * 3);
+        const snowVel = []; // Custom velocities
+
+        for (let i = 0; i < snowCount; i++) {
+            snowPos[i * 3] = (Math.random() - 0.5) * 20; // x
+            snowPos[i * 3 + 1] = (Math.random() - 0.5) * 20; // y
+            snowPos[i * 3 + 2] = (Math.random() - 0.5) * 20; // z
+            snowVel.push({
+                y: -(Math.random() * 0.05 + 0.02), // Fall speed
+                x: (Math.random() - 0.5) * 0.02 // Drift
+            });
+        }
+        snowGeo.setAttribute('position', new THREE.BufferAttribute(snowPos, 3));
+
+        // Simple circle sprite or just points
+        const snowMat = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.1,
+            transparent: true,
+            opacity: 0.8
+        });
+        const snowSystem = new THREE.Points(snowGeo, snowMat);
+        scene.add(snowSystem);
+
+
+        // --- 5. Logic & Animation ---
+
+        // Mouse Parallax
+        let mouseX = 0;
+        let mouseY = 0;
+        // Dampened values
+        let targetX = 0;
+        let targetY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.001;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.001;
+        });
+
+        // URL Parsing
+        window.addEventListener('load', () => {
+            const params = new URLSearchParams(window.location.search);
+            const name = params.get('n');
+            const greetingEl = document.getElementById('greeting');
+
+            if (name) {
+                greetingEl.innerText = `¡Feliz Navidad, ${name}!`;
+                document.title = `Feliz Navidad ${name}`;
+                // Hide share button if receiving? Or keep it to chain share? Let's keep it.
+            }
+        });
+
+        // --- UI Modal Logic ---
+        const shareBtn = document.getElementById('share-btn');
+        const modalOverlay = document.getElementById('modal-overlay');
+        const closeBtn = document.getElementById('close-btn');
+        const actionBtn = document.getElementById('action-btn');
+        const nameInput = document.getElementById('friend-name-input');
+        const resultArea = document.getElementById('result-area');
+        const linkInput = document.getElementById('share-link-input');
+
+        shareBtn.addEventListener('click', () => {
+            modalOverlay.classList.add('active');
+            nameInput.focus();
+            resetModal();
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modalOverlay.classList.remove('active');
+        });
+
+        // Update link when clicking Generate
+        actionBtn.addEventListener('click', () => {
+            const friendName = nameInput.value.trim();
+            if (friendName) {
+                const baseUrl = window.location.href.split('?')[0];
+                const newUrl = `${baseUrl}?n=${encodeURIComponent(friendName)}`;
+
+                // If button says "Copiar", just copy
+                if (actionBtn.innerText === "Copiar Link") {
+                    copyToClipboard(newUrl);
+                    return;
+                }
+
+                // Show result
+                resultArea.style.display = 'block';
+                linkInput.value = newUrl;
+
+                // Change button state
+                actionBtn.innerText = "Copiar Link";
+                copyToClipboard(newUrl); // Auto copy
+            } else {
+                nameInput.style.borderColor = 'red';
+                setTimeout(() => nameInput.style.borderColor = 'rgba(255,255,255,0.3)', 1000);
+            }
+        });
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = actionBtn.innerText;
+                actionBtn.innerText = "¡Copiado!";
+                setTimeout(() => actionBtn.innerText = "Copiar Link", 2000);
+            }).catch(err => {
+                console.error('Error al copiar', err);
+                linkInput.select();
+            });
+        }
+
+        function resetModal() {
+            nameInput.value = "";
+            resultArea.style.display = 'none';
+            actionBtn.innerText = "Generar Link";
+            nameInput.style.borderColor = 'rgba(255,255,255,0.3)';
+        }
+
+
+        // Resize Handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Animation Loop
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const time = clock.getElapsedTime();
+
+            // Tree Rotation (Automatic + Parallax)
+            treeGroup.rotation.y = Math.sin(time * 0.2) * 0.1; // Gentle sway
+            // Star rotation
+            star.rotation.y = time * 1.5;
+            star.rotation.z = Math.sin(time * 2) * 0.2;
+
+            // Parallax smoothness
+            targetX += (mouseX - targetX) * 0.05;
+            targetY += (mouseY - targetY) * 0.05;
+
+            // Apply parallax to camera or scene
+            treeGroup.rotation.y += targetX * 2;
+            treeGroup.rotation.x = targetY * 0.5;
+
+            // Snow Animation
+            const positions = snowSystem.geometry.attributes.position.array;
+            for (let i = 0; i < snowCount; i++) {
+                // Update Y
+                positions[i * 3 + 1] += snowVel[i].y;
+                // Update X (Drift)
+                positions[i * 3] += snowVel[i].x + Math.sin(time + positions[i * 3 + 1]) * 0.005;
+
+                // Reset logic
+                if (positions[i * 3 + 1] < -10) {
+                    positions[i * 3 + 1] = 10;
+                }
+            }
+            snowSystem.geometry.attributes.position.needsUpdate = true;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+    </script>
+</body>
+
+</html>
