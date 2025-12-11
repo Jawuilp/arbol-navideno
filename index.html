@@ -257,6 +257,8 @@
 
         // --- 3. Tree Construction ---
         const treeGroup = new THREE.Group();
+        treeGroup.position.y = 1.4; // Centered
+        treeGroup.scale.set(0.8, .9, 0.8); // Compact
         scene.add(treeGroup);
 
         // Materials
@@ -268,9 +270,9 @@
         const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x5a3a1a });
 
         // Trunk
-        const trunkGeo = new THREE.CylinderGeometry(0.5, 0.6, 1.5, 8);
+        const trunkGeo = new THREE.CylinderGeometry(0.5, 0.6, 2.5, 8);
         const trunk = new THREE.Mesh(trunkGeo, trunkMaterial);
-        trunk.position.y = -2;
+        trunk.position.y = -2.5;
         treeGroup.add(trunk);
 
         // Leaves (3 Cones)
