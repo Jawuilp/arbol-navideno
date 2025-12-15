@@ -94,6 +94,12 @@
 
         .share-container {
             margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            /* Spacing between buttons */
+            flex-wrap: wrap;
+            justify-content: center;
+            /* Center buttons */
         }
 
         button {
@@ -109,6 +115,8 @@
             transition: all 0.3s ease;
             outline: none;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            /* Ensure buttons don't touch on mobile stack */
+            margin-bottom: 5px;
         }
 
         button:hover {
@@ -236,26 +244,46 @@
         @media (max-width: 800px) {
             #ui-layer {
                 flex-direction: column;
-                justify-content: flex-start;
-                padding-top: 20%;
-                padding-left: 0;
+                justify-content: center;
+                padding: 20px;
                 align-items: center;
                 text-align: center;
             }
 
             .text-content {
-                width: 90%;
+                width: 100%;
+                height: 90vh;
+                /* Use almost full height */
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                /* Push Top (Text) and Bottom (Buttons) apart */
                 text-align: center;
+                pointer-events: none;
+                /* Let clicks pass through empty space */
+            }
+
+            .text-content>* {
+                pointer-events: auto;
+                /* Re-enable clicks on elements */
             }
 
             h1 {
                 font-size: 3.5rem;
+                margin-top: 20px;
             }
 
             p.subtext {
                 font-size: 1.2rem;
                 max-width: 100%;
-                margin: 10px auto;
+                margin: 0 auto;
+                margin-bottom: auto;
+                /* Push everything else down */
+            }
+
+            /* wrapper for bottom elements */
+            .bottom-ui {
+                margin-bottom: 40px;
             }
 
             /* On mobile, we might want the tree centered again or below text */
@@ -320,21 +348,24 @@
         <div class="text-content">
             <h1 id="greeting">¡Feliz Navidad!</h1>
             <p class="subtext">Que la magia de esta temporada llene tu corazón de paz y alegría.</p>
-            <div class="share-container">
-                <button id="share-btn">Enviar a un amigo</button>
-                <button id="music-btn" style="margin-left: 10px;">🎵 Música</button>
+
+            <div class="bottom-ui">
+                <div class="share-container">
+                    <button id="share-btn">Enviar a un amigo</button>
+                    <button id="music-btn">🎵 Música</button>
+                </div>
+                <p style="font-size: 0.8rem; margin-top: 15px; opacity: 0.7;">
+                    Música por: <a href="https://www.youtube.com/channel/UClkRzsdvg7_RKVhwDwiDZOA" target="_blank"
+                        style="color: #ffd700; text-decoration: none;">JFlaMusic</a>
+                    <br>
+                    Creado por: <a href="https://jawuil.dev/" target="_blank"
+                        style="color: #ffd700; text-decoration: none;">Jawuil.dev</a>
+                </p>
             </div>
-            <p style="font-size: 0.8rem; margin-top: 15px; opacity: 0.7;">
-                Música por: <a href="https://www.youtube.com/channel/UClkRzsdvg7_RKVhwDwiDZOA" target="_blank"
-                    style="color: #ffd700; text-decoration: none;">JFlaMusic</a>
-                <br>
-                Creado por: <a href="https://jawuil.dev/" target="_blank"
-                    style="color: #ffd700; text-decoration: none;">Jawuil.dev</a>
-            </p>
-            <audio id="bg-music" loop>
-                <source src="audio.MP3" type="audio/mp3">
-            </audio>
         </div>
+        <audio id="bg-music" loop>
+            <source src="audio.MP3" type="audio/mp3">
+        </audio>
     </div>
 
     <!-- Modal Form (Kept same structure) -->
@@ -607,7 +638,28 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            updateLayout(); // Check layout on resize
         });
+
+        // Responsive Layout Logic
+        function updateLayout() {
+            const width = window.innerWidth;
+            if (width < 800) {
+                // Mobile: Center the tree and move it down so it doesn't overlap text too much
+                // or sits nicely below it
+                treeGroup.position.x = 0;
+                treeGroup.position.y = 2.0; // Moved UP to clear buttons
+                treeGroup.scale.set(0.55, 0.55, 0.55); // Smaller to fit in the gap
+            } else {
+                // Desktop: Split view
+                treeGroup.position.x = 2.5;
+                treeGroup.position.y = 1.5;
+                treeGroup.scale.set(0.9, 0.9, 0.9);
+            }
+        }
+
+        // Initial check
+        updateLayout();
 
         // Animation Loop
         const clock = new THREE.Clock();
