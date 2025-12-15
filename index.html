@@ -18,6 +18,9 @@
             /* Dark night blue */
             font-family: 'Mountains of Christmas', cursive;
             color: white;
+            display: flex;
+            height: 100vh;
+            width: 100vw;
         }
 
         #canvas-container {
@@ -38,23 +41,47 @@
             z-index: 2;
             pointer-events: none;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            flex-direction: row;
+            /* Split Layout */
             align-items: center;
-            text-align: center;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            justify-content: flex-start;
+            /* Align content to start (left) */
+            padding-left: 10%;
+            /* Spacing */
+            box-sizing: border-box;
+        }
+
+        .text-content {
+            width: 40%;
+            /* Take up left side */
+            text-align: left;
+            /* Left align text */
+            z-index: 3;
+            pointer-events: auto;
+            /* Allow interaction */
         }
 
         h1 {
-            font-size: 4rem;
+            font-size: 5rem;
+            /* Larger title */
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            line-height: 1.1;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
             animation: float 6s ease-in-out infinite;
         }
 
-        .share-container {
+        p.subtext {
+            font-size: 1.8rem;
             margin-top: 20px;
-            pointer-events: auto;
+            color: #ddd;
+            line-height: 1.4;
+            max-width: 80%;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+
+        .share-container {
+            margin-top: 30px;
         }
 
         button {
@@ -64,7 +91,7 @@
             color: white;
             font-family: 'Mountains of Christmas', cursive;
             font-size: 1.5rem;
-            padding: 10px 30px;
+            padding: 10px 40px;
             border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -101,10 +128,10 @@
         }
 
         #modal-content {
-            background: rgba(20, 20, 40, 0.9);
+            background: rgba(20, 20, 40, 0.95);
             backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 215, 0, 0.3);
-            padding: 30px;
+            padding: 40px;
             border-radius: 20px;
             text-align: center;
             width: 90%;
@@ -118,6 +145,7 @@
             transform: scale(1);
         }
 
+        /* ... inputs and buttons same as before ... */
         #modal-content h2 {
             margin-top: 0;
             color: #ffd700;
@@ -133,7 +161,6 @@
             border-radius: 10px;
             color: white;
             font-family: sans-serif;
-            /* Readable for input */
             font-size: 1rem;
             text-align: center;
         }
@@ -155,6 +182,11 @@
             padding: 8px 20px;
             background: rgba(255, 50, 50, 0.2);
             border-color: rgba(255, 50, 50, 0.4);
+            border-radius: 5px;
+            color: white;
+            border-width: 1px;
+            border-style: solid;
+            cursor: pointer;
         }
 
         .close-btn:hover {
@@ -166,6 +198,11 @@
             padding: 8px 20px;
             background: rgba(50, 255, 50, 0.2);
             border-color: rgba(50, 255, 50, 0.4);
+            border-radius: 5px;
+            color: white;
+            border-width: 1px;
+            border-style: solid;
+            cursor: pointer;
         }
 
         .copy-btn:hover {
@@ -184,14 +221,32 @@
             }
         }
 
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 2.5rem;
+        @media (max-width: 800px) {
+            #ui-layer {
+                flex-direction: column;
+                justify-content: flex-start;
+                padding-top: 20%;
+                padding-left: 0;
+                align-items: center;
+                text-align: center;
             }
 
-            button {
-                font-size: 1.2rem;
+            .text-content {
+                width: 90%;
+                text-align: center;
             }
+
+            h1 {
+                font-size: 3.5rem;
+            }
+
+            p.subtext {
+                font-size: 1.2rem;
+                max-width: 100%;
+                margin: 10px auto;
+            }
+
+            /* On mobile, we might want the tree centered again or below text */
         }
     </style>
 </head>
@@ -201,13 +256,20 @@
     <div id="canvas-container"></div>
 
     <div id="ui-layer">
-        <h1 id="greeting">¡Feliz Navidad!</h1>
-        <div class="share-container">
-            <button id="share-btn">Enviar a un amigo</button>
+        <div class="text-content">
+            <h1 id="greeting">¡Feliz Navidad!</h1>
+            <p class="subtext">Que la magia de esta temporada llene tu corazón de paz y alegría.</p>
+            <div class="share-container">
+                <button id="share-btn">Enviar a un amigo</button>
+                <button id="music-btn" style="margin-left: 10px;">🎵 Música</button>
+            </div>
+            <audio id="bg-music" loop>
+                <source src="audio.MP3" type="audio/mp3">
+            </audio>
         </div>
     </div>
 
-    <!-- Modal Form -->
+    <!-- Modal Form (Kept same structure) -->
     <div id="modal-overlay">
         <div id="modal-content">
             <h2>Crear Tarjeta</h2>
@@ -235,30 +297,31 @@
 
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.z = 5;
-        camera.position.y = 1; // Slightly elevated
+        camera.position.y = 1;
 
         const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Performance optimization
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
         // --- 2. Lighting ---
-        const ambientLight = new THREE.AmbientLight(0x001133, 0.8); // Deep blue night
+        const ambientLight = new THREE.AmbientLight(0x001133, 0.8);
         scene.add(ambientLight);
 
-        const pointLight = new THREE.PointLight(0xffddaa, 1, 10); // Warm light for tree
+        const pointLight = new THREE.PointLight(0xffddaa, 1, 10);
         pointLight.position.set(2, 2, 2);
         scene.add(pointLight);
 
-        // Optional back rim light
         const rimLight = new THREE.DirectionalLight(0xccccff, 0.5);
         rimLight.position.set(-5, 5, -5);
         scene.add(rimLight);
 
         // --- 3. Tree Construction ---
         const treeGroup = new THREE.Group();
-        treeGroup.position.y = 1.4; // Centered
-        treeGroup.scale.set(0.8, .9, 0.8); // Compact
+        // MOVED: Position it to the RIGHT
+        treeGroup.position.x = 2.5;
+        treeGroup.position.y = 1.5; // Restored Y
+        treeGroup.scale.set(0.9, 0.9, 0.9); // Restored Scale
         scene.add(treeGroup);
 
         // Materials
@@ -398,6 +461,33 @@
         closeBtn.addEventListener('click', () => {
             modalOverlay.classList.remove('active');
         });
+
+        // --- Music Logic ---
+        const musicBtn = document.getElementById('music-btn');
+        const bgMusic = document.getElementById('bg-music');
+        let isPlaying = false;
+
+        musicBtn.addEventListener('click', () => {
+            if (isPlaying) {
+                bgMusic.pause();
+                musicBtn.innerText = "🎵 Música";
+            } else {
+                bgMusic.play().then(() => {
+                    musicBtn.innerText = "⏸ Pausar";
+                }).catch(e => console.log("Audio play error:", e));
+            }
+            isPlaying = !isPlaying;
+        });
+
+        // Autoplay workaround: Start music on first interaction anywhere
+        document.body.addEventListener('click', function () {
+            if (!isPlaying) {
+                bgMusic.play().then(() => {
+                    isPlaying = true;
+                    musicBtn.innerText = "⏸ Pausar";
+                }).catch(e => { /* Ignore auto-play errors */ });
+            }
+        }, { once: true }); // Only run once
 
         // Update link when clicking Generate
         actionBtn.addEventListener('click', () => {
